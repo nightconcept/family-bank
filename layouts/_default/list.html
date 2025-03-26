@@ -14,52 +14,65 @@
         td.amount-deposit { color: green; }
         td.amount-withdrawal { color: red; }
         .balance-summary { margin-top: 20px; font-size: 1.2em; font-weight: bold; }
+        .error-message { color: red; font-style: italic;}
     </style>
 </head>
 <body>
 
     <h1>{{ .Title }}</h1>
 
+    {{/* --- Access data directly from data/transactions.json --- */}}
     {{ $transactions := .Site.Data.transactions }}
-    {{ $transactionCount := len $transactions }}
+    {{ $finalBalance := 0.0 }}
 
-    {{ if gt $transactionCount 0 }}
-        <table>
-            <thead>
-                <tr>
-                    <th>Timestamp</th>
-                    <th>Description</th>
-                    <th>Amount</th>
-                    <th>Balance After</th>
-                </tr>
-            </thead>
-            <tbody>
-                {{/* Iterate in reverse chronological order for display */}}
-                {{ range sort $transactions "timestamp" "desc" }}
+    {{ if $transactions }} {{/* Check if data was loaded (is not nil) */}}
+        {{ $transactionCount := len $transactions }}
+
+        {{ if gt $transactionCount 0 }}
+            <table>
+                <thead>
                     <tr>
-                        <td>{{ .timestamp }}</td>
-                        <td>{{ .description }}</td>
-                        {{ $amountFloat := float .amount }}
-                        <td class="{{ if ge $amountFloat 0.0 }}amount-deposit{{ else }}amount-withdrawal{{ end }}">
-                            {{ printf "%.2f" $amountFloat }}
-                        </td>
-                        <td>{{ printf "%.2f" (float .balance) }}</td>
+                        <th>Timestamp</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Balance After</th>
                     </tr>
-                {{ end }}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    {{/* Iterate in reverse chronological order for display */}}
+                    {{ range sort $transactions "timestamp" "desc" }}
+                        <tr>
+                            <td>{{ .timestamp }}</td>
+                            <td>{{ .description }}</td>
+                            {{/* Assume amount is loaded as a number (float) from JSON */}}
+                            {{ $amountFloat := .amount }}
+                            <td class="{{ if ge $amountFloat 0.0 }}amount-deposit{{ else }}amount-withdrawal{{ end }}">
+                                {{ printf "%.2f" $amountFloat }}
+                            </td>
+                            <td>{{ printf "%.2f" .balance }}</td> {{/* Assume balance is float */}}
+                        </tr>
+                    {{ end }}
+                </tbody>
+            </table>
 
-        {{/* Get the latest transaction based on the CSV order (last row) to show final balance */}}
-        {{ $lastTransaction := index $transactions (sub $transactionCount 1) }}
-         {{/* Alternative using `last`: {{ $lastTransaction := first 1 (last 1 $transactions) }} */}}
-        <div class="balance-summary">
-            Current Balance: {{ printf "%.2f" (float $lastTransaction.balance) }}
-        </div>
+            {{/* Get the latest transaction based on the JSON array order (last element) */}}
+            {{ $lastTransaction := index $transactions (sub $transactionCount 1) }}
+            {{ $finalBalance = $lastTransaction.balance }}
+            <div class="balance-summary">
+                Current Balance: {{ printf "%.2f" $finalBalance }}
+            </div>
+
+        {{ else }}
+            <p>No transactions recorded yet.</p>
+             <div class="balance-summary">
+                Current Balance: {{ printf "%.2f" $finalBalance }} {{/* Will be 0.00 */}}
+            </div>
+        {{ end }}
 
     {{ else }}
-        <p>No transactions recorded yet.</p>
-        <div class="balance-summary">
-            Current Balance: 0.00
+        <p class="error-message">Could not load transaction data. Ensure 'data/transactions.json' exists and is valid JSON.</p>
+         <div class="balance-summary">
+            Current Balance: {{ printf "%.2f" $finalBalance }} {{/* Will be 0.00 */}}
         </div>
     {{ end }}
 

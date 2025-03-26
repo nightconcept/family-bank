@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .Title }} | Kids Bank</title>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; margin: 20px; }
+        h1, h2 { color: #333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        td.amount-deposit { color: green; }
+        td.amount-withdrawal { color: red; }
+        .balance-summary { margin-top: 20px; font-size: 1.2em; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h1>{{ .Title }}</h1>
+
+    {{ $transactions := .Site.Data.transactions }}
+    {{ $transactionCount := len $transactions }}
+
+    {{ if gt $transactionCount 0 }}
+        <table>
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                    <th>Balance After</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{/* Iterate in reverse chronological order for display */}}
+                {{ range sort $transactions "timestamp" "desc" }}
+                    <tr>
+                        <td>{{ .timestamp }}</td>
+                        <td>{{ .description }}</td>
+                        {{ $amountFloat := float .amount }}
+                        <td class="{{ if ge $amountFloat 0.0 }}amount-deposit{{ else }}amount-withdrawal{{ end }}">
+                            {{ printf "%.2f" $amountFloat }}
+                        </td>
+                        <td>{{ printf "%.2f" (float .balance) }}</td>
+                    </tr>
+                {{ end }}
+            </tbody>
+        </table>
+
+        {{/* Get the latest transaction based on the CSV order (last row) to show final balance */}}
+        {{ $lastTransaction := index $transactions (sub $transactionCount 1) }}
+         {{/* Alternative using `last`: {{ $lastTransaction := first 1 (last 1 $transactions) }} */}}
+        <div class="balance-summary">
+            Current Balance: {{ printf "%.2f" (float $lastTransaction.balance) }}
+        </div>
+
+    {{ else }}
+        <p>No transactions recorded yet.</p>
+        <div class="balance-summary">
+            Current Balance: 0.00
+        </div>
+    {{ end }}
+
+</body>
+</html>

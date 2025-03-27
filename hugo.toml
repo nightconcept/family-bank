@@ -1,4 +1,4 @@
-baseURL = '/' # Vercel will override this, but '/' is a safe default
+baseURL = '/'
 languageCode = 'en-us'
 title = 'Kids Bank'
 

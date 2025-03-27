@@ -1,8 +1,5 @@
 [phases.setup]
-nixPkgs = ["hugo", "git", "python3"]
+nixPkgs = ["hugo"]
 
 [phases.build]
-cmds = ["hugo"]
-
-[phases.start]
-cmd = "python -m http.server $PORT --directory public"
+cmds = ["hugo --minify"]

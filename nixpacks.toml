@@ -1,8 +1,5 @@
 [phases.setup]
-nixPkgs = ["hugo"]
+aptPkgs = ["hugo"]
 
 [phases.build]
 cmds = ["hugo --minify"]
-
-[phases.start]
-cmds = ["hugo server --bind 0.0.0.0 --port $PORT"]

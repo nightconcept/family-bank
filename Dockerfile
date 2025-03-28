@@ -13,7 +13,7 @@ COPY public .
 
 # Expose the port Nginx listens on (adjust if your Nginx config differs)
 # Make sure this matches the port in your Traefik service label!
-EXPOSE 80
+EXPOSE 3000
 
 # Command to run Nginx in the foreground
 CMD ["nginx", "-g", "daemon off;"]

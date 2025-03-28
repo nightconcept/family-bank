@@ -39,9 +39,9 @@ jobs:
     runs-on: self-hosted # Use YOUR runner for deployment
 
     steps:
-      - name: Checkout Code (for Dockerfile.nginx)
+      - name: Checkout Code (for Dockerfile)
         uses: actions/checkout@v4
-        # We only need the Dockerfile.nginx from the repo here
+        # We only need the Dockerfile from the repo here
 
       - name: Download Artifact
         uses: actions/download-artifact@v4
@@ -53,13 +53,13 @@ jobs:
         uses: docker/setup-buildx-action@v3
         # Ensures buildx is available on your self-hosted runner
 
-      # Build the SIMPLE Nginx image using Dockerfile.nginx and the downloaded 'public' directory
+      # Build the SIMPLE Nginx image using Dockerfile and the downloaded 'public' directory
       - name: Build Deployment Image
         id: docker_build
         uses: docker/build-push-action@v5
         with:
           context: . # Build context includes Dockerfile.nginx and downloaded 'public' dir
-          file: ./Dockerfile.nginx # Specify the correct Dockerfile
+          file: ./Dockerfile # Specify the correct Dockerfile
           push: false # Don't push to a registry
           tags: local-hugo-site:${{ github.sha }} # Tag with commit SHA
           load: true # Load the image into the runner's Docker daemon
@@ -88,7 +88,7 @@ jobs:
             -l "traefik.http.routers.bank-secure.rule=Host(`bank.local.solivan.dev`)" \
             -l "traefik.http.routers.bank-secure.tls=true" \
             -l "traefik.http.routers.bank-secure.service=bank" \
-            -l "traefik.http.services.bank.loadbalancer.server.port=3000" `# <<< IMPORTANT: Should match EXPOSE in Dockerfile.nginx (default 80)` \
+            -l "traefik.http.services.bank.loadbalancer.server.port=3000" `# <<< IMPORTANT: Should match EXPOSE in Dockerfile (default 80)` \
             -l "traefik.docker.network=proxy" \
             -l "com.centurylinklabs.watchtower.enable=true" \
             `# --- End Labels --- ` \

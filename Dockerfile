@@ -1,28 +1,19 @@
-# Dockerfile for Hugo Site
+# Dockerfile.nginx
+# This Dockerfile is used ONLY by the deploy job on the self-hosted runner.
+# It expects the 'public' directory (built in the 'build' job) to be available in the build context.
 
-# --- Stage 1: Build Stage ---
-# Use a specific version of the Hugo image.
-FROM floryn90/hugo:0.145.0-alpine AS builder
-# Using the image you specified in the logs.
-
-WORKDIR /src
-
-COPY . .
-
-# Build the site into /tmp/public where the user should have write permissions.
-# Added the '-d /tmp/public' flag to specify the destination.
-RUN hugo --minify
-
-# Stage 2: Serve the built site with Nginx
 FROM nginx:stable-alpine
 WORKDIR /usr/share/nginx/html
-# Remove default Nginx welcome page
+
+# Clean out default Nginx content
 RUN rm -rf ./*
-# Copy built site from the builder stage
-COPY --from=builder /src/public .
-# Expose port 80 for Nginx
+
+# Copy the pre-built 'public' directory from the build context
+COPY public .
+
+# Expose the port Nginx listens on (adjust if your Nginx config differs)
+# Make sure this matches the port in your Traefik service label!
 EXPOSE 80
-# Optional: Copy a custom nginx.conf if needed
-# COPY nginx.conf /etc/nginx/conf.d/default.conf
+
 # Command to run Nginx in the foreground
 CMD ["nginx", "-g", "daemon off;"]

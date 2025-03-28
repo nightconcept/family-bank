@@ -61,34 +61,24 @@ jobs:
           context: . # Build context includes Dockerfile.nginx and downloaded 'public' dir
           file: ./Dockerfile # Specify the correct Dockerfile
           push: false # Don't push to a registry
-          tags: local-hugo-site:${{ github.sha }} # Tag with commit SHA
+          tags: family-bank:${{ github.sha }} # Tag with commit SHA
           load: true # Load the image into the runner's Docker daemon
 
       # Stop and remove the existing container
       - name: Stop and Remove Previous Container
         run: |
-          docker stop hugo-site-container || true
-          docker rm hugo-site-container || true
+          docker stop family-bank || true
+          docker rm family-bank || true
         continue-on-error: true
 
 # Run the new container - Adjusted for cross-host Traefik
       - name: Run New Container
         run: |
           docker run -d \
-            --name hugo-site-container \
-            `# --network proxy REMOVED ` \
+            --name family-bank \
             --restart unless-stopped \
             -p 8080:80 `# Map host port 8080 to container port 80 (adjust host port if needed)` \
-            `# --- Labels (Mainly for info/Watchtower now, Traefik ignores these via Docker Provider) --- ` \
-            -l "traefik.enable=true" `# Might still be useful for some setups, but routing is manual` \
-            `# Router/Service labels below are NOT automatically used by Traefik on the other host ` \
-            -l "traefik.http.routers.bank.rule=Host('bank.local.solivan.dev')" \
-            -l "traefik.http.routers.bank-secure.rule=Host('bank.local.solivan.dev')" \
-            -l "traefik.http.services.bank.loadbalancer.server.port=80" `# Should match container port (e.g., 80)` \
-            `# -l "traefik.docker.network=proxy" REMOVED ` \
-            -l "com.centurylinklabs.watchtower.enable=true" \
-            `# --- End Labels --- ` \
-            local-hugo-site:${{ github.sha }}
+            family-bank:${{ github.sha }}
 
       # Optional: Clean up old images if desired
       # - name: Prune old Docker images
